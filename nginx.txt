@@ -1,0 +1,35 @@
+server {
+        listen 80;
+        server_name _default;
+        location = /favicon.ico { access_log off; log_not_found off; }
+        location /static/ {
+                        root /home/ubuntu/new_chatapp;
+        }
+        location / {
+                include proxy_params;
+                proxy_pass http://internal-Backend-Load-Balancer-658534936.ap-south-1.elb.amazonaws.com;
+        }
+}
+
+
+
+
+ubuntu@ip-10-200-0-239:~$ sudo vim /etc/nginx/sites-available/chatapp
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+[Unit]
+Description=gunicorn daemon
+After=network.target
+
+[Service]
+User=ansible
+Group=www-data
+WorkingDirectory=/home/ansible/new_chatapp/fundoo
+ExecStart=/bin/bash -c 'source /home/ansible/new_chatapp/env/bin/activate && /home/ansible/new_chatapp/env/bin/gunicorn --workers 3 --bind 0.0.0.0:8000 fundoo.wsgi:application'
+
+[Install]
+WantedBy=multi-user.target
+

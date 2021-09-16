@@ -1,0 +1,160 @@
+# Ansible Package
+wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+
+yum install epel-release-latest-7.noarch.rpm
+
+#open and create group with name [production] and put nodes private ip there
+vi /etc/ansible/hosts
+Ex 1: Ungrouped hosts, specify before any group headers.
+[production]
+172.31.35.77
+172.31.32.147
+
+now adduser ansible  [ in all servers ]
+and give ansible to root priviledge
+
+#to give root priviledge
+visudo
+root    ALL=(ALL:ALL) ALL
+ansible ALL=(ALL) NOPASSWD: ALL
+
+# to established ssh connection between ansible server and nodes
+vi /etc/ssh/sshd_config
+
+some steps you have to follow by root user
+
+1# Authentication:
+
+#LoginGraceTime 2m
+PermitRootLogin yes
+#StrictModes yes
+#MaxAuthTries 6
+#MaxSessions 10
+
+2# To disable tunneled clear text passwords, change to no here!
+PasswordAuthentication yes
+#PermitEmptyPasswords no
+#PasswordAuthentication no
+
+do these congiguration in all nodes and after that restart the service
+root@ip-10-200-1-161:/home/ubuntu# service sshd restart
+
+now become a ansible user in all the nodes and try to establish connection with node 
+ssh 172.31.35.77
+password: production
+
+# to restrict not to ask password again and again
+#Generate Key
+ansible@ip-172-31-46-236:~$ ssh-keygen ====>  [two key will be generated private and public key in .ssh file]
+enter
+enter
+enter
+
+to show hidden files =====> ansible@ip-172-31-46-236:~$ ls -a
+.  ..  .bash_history  .bash_logout  .bashrc  .profile  .ssh
+ansible@ip-172-31-46-236:~$ cd .ssh
+ansible@ip-172-31-46-236:~/.ssh$ ls
+id_rsa  id_rsa.pub  known_hosts
+
+# for frontend server
+ansible@ip-172-31-46-236:~/.ssh$ ssh-copy-id ansible@172.31.35.77
+# for backendend server
+ansible@ip-172-31-46-236:~/.ssh$ ssh-copy-id ansible@172.31.32.147
+# try to login into frontend server
+ansible@ip-172-31-46-236:~$ ssh 172.31.35.77
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Ansible commands
+
+to check all hosts
+ansible@ip-172-31-46-236:~$ ansible all --list-hosts
+ansible@ip-172-31-46-236:~$ ansible production --list-hosts
+
+first node ==> 0 ===> for first node ===> ansible@ip-172-31-46-236:~$ ansible production[0] --list-hosts
+second node ==> 1 ===> for second node ===> ansible@ip-172-31-46-236:~$ ansible production[1] --list-hosts
+third node ==> 2 ===> for third node ===> ansible@ip-172-31-46-236:~$ ansible production[2] --list-hosts
+
+second last node ==> -2 ===> for second last node ===> ansible@ip-172-31-46-236:~$ ansible production[-2] --list-hosts
+last node ==> -1 ===> for last node ===> ansible@ip-172-31-46-236:~$ ansible production[-1] --list-hosts
+
+for range of nodes ==> [0:1] ===> for range of node ===> ansible@ip-172-31-46-236:~$ ansible production[0:1] --list-hosts
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# Ansible Ad-hoc command
+
+==> To check files in node server [ production is a group name which is created in ansible server ]
+ansible@ip-172-31-46-236:/home/ubuntu$ ansible production -a "ls"
+172.31.32.147 | SUCCESS | rc=0 >>
+file1.txt
+172.31.35.77 | SUCCESS | rc=0 >>
+ansible.txt
+
+==> To check on all groups i.e. use all in place of production
+ansible@ip-172-31-46-236:/home/ubuntu$ ansible all -a "ls"
+172.31.32.147 | SUCCESS | rc=0 >>
+file1.txt
+172.31.35.77 | SUCCESS | rc=0 >>
+ansible.txt
+
+==> to create file on all sever with name ritesh .txt
+ansible@ip-172-31-46-236:/home/ubuntu$ ansible all -a "touch ritesh.txt"
+172.31.32.147 | SUCCESS | rc=0 >>
+172.31.35.77 | SUCCESS | rc=0 >>
+
+==> to check long list files on node server
+ansible@ip-172-31-46-236:/home/ubuntu$ ansible all -a "ls -al"
+
+==> Install apache server on nodes with sudo command
+ansible@ip-172-31-46-236:/home/ubuntu$ ansible production -a "sudo apt-get install httpd -y"
+
+==> to remove appache server from all nodes [-b is used for become root user] 
+ansible@ip-172-31-46-236:/home/ubuntu$ ansible all -ba "apt-get remove httpd"
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# Ansible Modules
+
+Where ansible modules is stored ====> where there is privet ip of nodes is stored
+default location of inventory is ===> /etc/ansible/hosts 
+
+-m ==> is used for write module
+-m yum [ yum is module name ]
+-m user [ user is module name ]
+-m service [service se related kaam karna chahta hu, service is module name]
+
+# to install appache on nodes ==> state=present
+ansible production -b -m yum -a "pkg=httpd state=present"
+
+# to update httpd (apache server) ==> state=latest
+ansible production -b -m yum -a "pkg=httpd state=latest"
+
+# to start httpd (apache server) ==> state=started
+ansible production -b -m yum -a "pkg=httpd state=latest
+
+# to create user on nodes
+ansible production -b -m user -a "name=ritesh"
+
+#to copy files on specific destination
+ansible production -b -m copy -a "src=file4 dest=/tmp"
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# Ansible Setup
+
+#it will show all the details of node
+ansible@ip-172-31-46-236:~$ ansible production -m setup
+
+# it will show details about ipv4 only ==> use filter
+ansible@ip-172-31-46-236:~$ ansible production -m setup -a "filter=*ipv4*"
+
+
+
+kfhglfhgsdfglsdfgldshlgha
+
+
+
+

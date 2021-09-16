@@ -1,0 +1,20 @@
+--- #Frontend Playbook
+- hosts: frontendserver
+  user: ansible
+  become: yes
+  connection: ssh
+
+  tasks:
+          - name: install nginx
+            apt:
+                    name: nginx
+                    state: latest
+          - name: copy nginx file
+            copy:
+                    src: /home/ansible/chatapp
+                    dest: /etc/nginx/sites-available
+
+          - name: start nginx
+            service:
+                name: nginx
+                state: started
